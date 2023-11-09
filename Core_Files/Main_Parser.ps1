@@ -24,7 +24,7 @@ function Invoke-SecurityCenterApi {
         return $null
     }
 }
-
+#testchange
 $TenantId = ""
 $appId = ""
 $appSecret = ""
