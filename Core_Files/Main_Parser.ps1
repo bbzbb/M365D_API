@@ -1,4 +1,83 @@
-﻿function Get-AuthToken {
+﻿$appIdUri = 'https://api.securitycenter.microsoft.com'
+$apiEndpoints = @(
+    #@{ Key = "GetAlert"; Endpoint = "/security/alerts/{alert_id}"; Method = "GET" },
+    #@{ Key = "SecureConfigAssessmentByMachine"; Endpoint = "/api/machines/SecureConfigurationsAssessmentByMachine"; Method = "GET" },
+    #@{ Key = "SecureConfigAssessmentExport"; Endpoint = "/api/machines/SecureConfigurationsAssessmentExport"; Method = "GET" },
+    @{ Key = "SoftwareInventoryByMachine"; Endpoint = "/api/machines/SoftwareInventoryByMachine"; Method = "GET" },
+    #@{ Key = "SoftwareInventoryExport"; Endpoint = "/api/machines/SoftwareInventoryExport"; Method = "GET" },
+    @{ Key = "SoftwareInventoryNoProductCodeByMachine"; Endpoint = "/api/machines/SoftwareInventoryNoProductCodeByMachine"; Method = "GET" },
+    #@{ Key = "SoftwareInventoryNonCpeExport"; Endpoint = "/api/machines/SoftwareInventoryNonCpeExport"; Method = "GET" },
+    @{ Key = "SoftwareVulnerabilitiesByMachine"; Endpoint = "/api/machines/SoftwareVulnerabilitiesByMachine"; Method = "GET" },
+    #@{ Key = "SoftwareVulnerabilitiesExport"; Endpoint = "/api/machines/SoftwareVulnerabilitiesExport"; Method = "GET" },
+    #@{ Key = "SoftwareVulnerabilityChangesByMachine"; Endpoint = "/api/machines/SoftwareVulnerabilityChangesByMachine"; Method = "GET" },
+    #@{ Key = "ListInvestigationsAPI"; Endpoint = "/api/investigations"; Method = "GET" },
+    #@{ Key = "GetInvestigationAPI"; Endpoint = "/api/investigations/{id}"; Method = "GET" },
+    #@{ Key = "StartInvestigationAPI"; Endpoint = "/api/machines/{id}/startInvestigation"; Method = "POST" },
+    @{ Key = "DeviceAntivirusHealthReport"; Endpoint = "/api/deviceavinfo"; Method = "GET" },
+    #@{ Key = "InfoGatheringExport"; Endpoint = "/api/machines/InfoGatheringExport"; Method = "GET" },
+    #@{ Key = "GetDomainRelatedAlertsAPI"; Endpoint = "/api/domains/{domain}/alerts"; Method = "GET" },
+    #@{ Key = "GetFileInfoAPI"; Endpoint = "/api/files/{id}"; Method = "GET" },
+    #@{ Key = "GetFileRelatedAlertsAPI"; Endpoint = "/api/files/{id}/alerts"; Method = "GET" },
+    #@{ Key = "GetFileRelatedMachinesAPI"; Endpoint = "/api/files/{id}/machines"; Method = "GET" },
+    #@{ Key = "GetFileStatisticsAPI"; Endpoint = "/api/files/{id}/stats"; Method = "GET" },
+    #@{ Key = "ListIndicatorsAPI"; Endpoint = "/api/indicators"; Method = "GET" },
+    #@{ Key = "SubmitOrUpdateIndicatorAPI"; Endpoint = "/api/indicators"; Method = "POST" },
+    #@{ Key = "ImportIndicatorsAPI"; Endpoint = "/api/indicators/import"; Method = "POST" },
+    #@{ Key = "DeleteIndicatorAPI"; Endpoint = "/api/indicators/{id}"; Method = "DELETE" },
+    #@{ Key = "GetIPRelatedAlertsAPI"; Endpoint = "/api/ips/{ip}/alerts"; Method = "GET" },
+    @{ Key = "ListMachinesAPI"; Endpoint = "/api/machines"; Method = "GET" },
+    #@{ Key = "GetMachineByIDAPI"; Endpoint = "/api/machines/{id}"; Method = "GET" },
+    #@{ Key = "GetMachineLogonUsersAPI"; Endpoint = "/api/machines/{id}/logonusers"; Method = "GET" },
+    #@{ Key = "GetMachineRelatedAlertsAPI"; Endpoint = "/api/machines/{id}/alerts"; Method = "GET" },
+    #@{ Key = "GetInstalledSoftwareAPI"; Endpoint = "/api/machines/{machineId}/software"; Method = "GET" },
+    @{ Key = "GetDiscoveredVulnerabilitiesAPI"; Endpoint = "/api/machines/{machineId}/vulnerabilities"; Method = "GET" },
+    @{ Key = "GetSecurityRecommendationsAPI"; Endpoint = "/api/machines/{machineId}/recommendations"; Method = "GET" },
+    #@{ Key = "AddOrRemoveTagForMachineAPI"; Endpoint = "/api/machines/{id}/tags"; Method = "POST" },
+    #@{ Key = "FindDevicesByInternalIPAPI"; Endpoint = "/api/machines/findbyip(ip='{IP}',timestamp={TimeStamp})"; Method = "GET" },
+    #@{ Key = "FindDevicesByTagAPI"; Endpoint = "/api/machines/findbytag?tag={tag}&useStartsWithFilter={true/false}"; Method = "GET" },
+    @{ Key = "GetMissingKBsByDeviceID"; Endpoint = "/api/machines/{machineId}/getmissingkbs"; Method = "GET" },
+    #@{ Key = "SetDeviceValueAPI"; Endpoint = "/api/machines/{machineId}/setDeviceValue"; Method = "POST" },
+    #@{ Key = "UpdateMachineAPI"; Endpoint = "/api/machines/{machineId}"; Method = "PATCH" },
+    #@{ Key = "ListMachineActionsAPI"; Endpoint = "/api/machineactions"; Method = "GET" },
+    #@{ Key = "GetMachineActionAPI"; Endpoint = "/api/machineactions/{id}"; Method = "GET" },
+    #@{ Key = "CollectInvestigationPackageAPI"; Endpoint = "/api/machines/{id}/collectInvestigationPackage"; Method = "POST" },
+    #@{ Key = "GetPackageSASURIAPI"; Endpoint = "/api/machineactions/{machine action id}/getPackageUri"; Method = "GET" },
+    #@{ Key = "IsolateMachineAPI"; Endpoint = "/api/machines/{id}/isolate"; Method = "POST" },
+    #@{ Key = "ReleaseDeviceFromIsolationAPI"; Endpoint = "/api/machines/{id}/unisolate"; Method = "POST" },
+    #@{ Key = "RestrictAppExecutionAPI"; Endpoint = "/api/machines/{id}/restrictCodeExecution"; Method = "POST" },
+    #@{ Key = "RemoveAppRestrictionAPI"; Endpoint = "/api/machines/{id}/unrestrictCodeExecution"; Method = "POST" },
+    #@{ Key = "RunAntivirusScanAPI"; Endpoint = "/api/machines/{id}/runAntiVirusScan"; Method = "POST" },
+    #@{ Key = "OffboardMachineAPI"; Endpoint = "/api/machines/{id}/offboard"; Method = "POST" },
+    #@{ Key = "StopAndQuarantineFileAPI"; Endpoint = "/api/machines/{id}/StopAndQuarantineFile"; Method = "POST" },
+    #@{ Key = "GetLiveResponseResultsAPI"; Endpoint = "/api/machineactions/{machine action id}/GetLiveResponseResultDownloadLink(index={command-index})"; Method = "GET" },
+    #@{ Key = "CancelMachineActionAPI"; Endpoint = "/api/machineactions/<machineactionid>/cancel"; Method = "POST" },
+    #@{ Key = "ListRecommendationsAPI"; Endpoint = "/api/recommendations"; Method = "GET" },
+    #@{ Key = "GetRecommendationByIDAPI"; Endpoint = "/api/recommendations/{id}"; Method = "GET" },
+    #@{ Key = "ListSoftwareByRecommendationAPI"; Endpoint = "/api/recommendations/{id}/software"; Method = "GET" },
+    #@{ Key = "ListDevicesByRecommendationAPI"; Endpoint = "/api/recommendations/{id}/machineReferences"; Method = "GET" },
+    #@{ Key = "ListVulnerabilitiesByRecommendationAPI"; Endpoint = "/api/recommendations/{id}/vulnerabilities"; Method = "GET" },
+    #@{ Key = "ListRemediationActivitiesAPI"; Endpoint = "/api/remediationtasks"; Method = "GET" },
+    #@{ Key = "ListExposedDevicesOfRemediationActivityAPI"; Endpoint = "/api/remediationTasks/{id}/machineReferences"; Method = "GET" },
+    #@{ Key = "GetOneRemediationActivityByIDAPI"; Endpoint = "/api/remediationTasks/{id}"; Method = "GET" },
+    #@{ Key = "GetExposureScoreAPI"; Endpoint = "/api/exposureScore"; Method = "GET" },
+    #@{ Key = "GetDeviceSecureScoreAPI"; Endpoint = "/api/configurationScore"; Method = "GET" },
+    #@{ Key = "ListExposureScoreByDeviceGroupAPI"; Endpoint = "/api/exposureScore/ByMachineGroups"; Method = "GET" },
+    #@{ Key = "ListSoftwareInventoryAPI"; Endpoint = "/api/Software"; Method = "GET" },
+    #@{ Key = "GetSoftwareByIDAPI"; Endpoint = "/api/Software/{Id}"; Method = "GET" },
+    #@{ Key = "ListSoftwareVersionDistributionAPI"; Endpoint = "/api/Software/{Id}/distributions"; Method = "GET" },
+    #@{ Key = "ListDevicesBySoftwareAPI"; Endpoint = "/api/Software/{Id}/machineReferences"; Method = "GET" },
+    #@{ Key = "ListVulnerabilitiesBySoftwareAPI"; Endpoint = "/api/Software/{Id}/vulnerabilities"; Method = "GET" },
+    #@{ Key = "GetMissingKBsBySoftwareIDAPI"; Endpoint = "/api/Software/{Id}/getmissingkbs"; Method = "GET" },
+    #@{ Key = "GetUserRelatedAlertsAPI"; Endpoint = "/api/users/{id}/alerts"; Method = "GET" },
+    #@{ Key = "GetUserRelatedMachinesAPI"; Endpoint = "/api/users/{id}/machines"; Method = "GET" },
+    #@{ Key = "ListVulnerabilitiesAPI"; Endpoint = ""; Method = "GET"/api/vulnerabilities },
+    #@{ Key = "GetVulnerabilityByIDAPI"; Endpoint = "/api/vulnerabilities/{cveId}"; Method = "GET" },
+    #@{ Key = "ListDevicesByVulnerabilityAPI"; Endpoint = "/api/vulnerabilities/{cveId}/machineReferences"; Method = "GET" },
+    @{ Key = "ListVulnerabilitiesByMachineAndSoftwareAPI"; Endpoint = "/api/vulnerabilities/machinesVulnerabilities"; Method = "GET" }
+)
+
+
+function Get-AuthToken {
     param ($TenantId, $appId, $appSecret, $resourceAppIdUri)
 
     $oAuthUri = "https://login.microsoftonline.com/$TenantId/oauth2/token"
@@ -14,13 +93,15 @@
 }
 
 function Invoke-SecurityCenterApi {
-    param ($Uri, $Headers)
+    param ($Endpoint, $Headers, $Method)
 
     try {
-        $response = Invoke-RestMethod -Uri $Uri -Headers $Headers -Method Get
+        $response = Invoke-RestMethod -Uri $appIdUri$Endpoint -Headers $Headers -Method $Method
         return $response.value
-    } catch {
-        Write-Warning "Error calling API: $_"
+    }
+    
+    catch {
+        Write-Warning "Error calling API: $_ - Key: $Endpoint"
         return $null
     }
 }
@@ -28,9 +109,9 @@ function Invoke-SecurityCenterApi {
 $TenantId = ""
 $appId = ""
 $appSecret = ""
+#Give option to log in as global admin.
 
-
-$token = Get-AuthToken -TenantId $TenantId -appId $appId -appSecret $appSecret -resourceAppIdUri 'https://api.securitycenter.microsoft.com'
+$token = Get-AuthToken -TenantId $TenantId -appId $appId -appSecret $appSecret -resourceAppIdUri $appIdUri
 
 $headers = @{
     'Content-Type' = 'application/json'
@@ -38,46 +119,45 @@ $headers = @{
     Authorization = "Bearer $token"
 }
 
-$ListMachinesVulnerabilityUri = "https://api.securitycenter.microsoft.com/api/vulnerabilities/machinesVulnerabilities"
-$listMachinesUri = "https://api.securitycenter.microsoft.com/api/machines/"
-
-$vulnerabilities = Invoke-SecurityCenterApi -Uri $ListMachinesVulnerabilityUri -Headers $headers
-$machines = Invoke-SecurityCenterApi -Uri $listMachinesUri -Headers $headers
-
-$vulObjectData = New-Object System.Collections.Generic.List[Object]
-$machineObjectData = New-Object System.Collections.Generic.List[Object]
-
-foreach ($vul in $vulnerabilities) {
-    $vulObject = [PSCustomObject]@{
-        "cve id" = $vul.cveid
-        "machineid" = $vul.machineid
-        "product name" = $vul.productname
-        "product vendor" = $vul.productvendor
-        "product version" = $vul.productversion
+$apiData = @()
+foreach ($apiEndpoint in $apiEndpoints) {
+    $data = Invoke-SecurityCenterApi -Endpoint $apiEndpoint.Endpoint -Headers $headers -Method $apiEndpoint.Method
+    if ($null -ne $data) {
+        $apiData += [PSCustomObject]@{
+            Endpoint = $apiEndpoint.Endpoint
+            Data = $data
+        }
     }
-    $vulObjectData.Add($vulObject)
 }
 
-foreach ($machine in $machines) {
-    $machineObject = [PSCustomObject]@{
-        "Computer Name" = $machine.computerDnsName
-        "Device ID" = $machine.id
-        "Last IP Address" = $machine.lastipaddress 
-        "Last External IP Address" = $machine.lastexternalipaddress
-        "Health Status" = $machine.healthstatus
-        "Onboarding Status" = $machine.onboardingstatus
-        "OS Platform" = $machine.osplatform
-        "OS Version" = $machine.version
-    }
-    
-    $machineObjectData.Add($machineObject)
-}
+#option to merge via deviceId property
+#$apiData[0].Data | Group-Object -property deviceId
+#$apiData[1].Data | Group-Object -property deviceId
+#$apiData[2].Data | Group-Object -property deviceId
+$apiData[5].Data | Select-Object *, @{Name='deviceId'; Expression={$_.machineId}} -ExcludeProperty machineId | Group-Object -property deviceId
 
-# Filter machine objects based on vulnerability data
-$vulnerableDeviceIds = $vulObjectData | ForEach-Object { $_."machineid" } | Sort-Object -Unique
-$filteredMachineObjects = $machineObjectData | Where-Object { $vulnerableDeviceIds -contains $_."Device ID" }
 
-write-host "Vulnerable machines: $filteredMachineObjects"
+#$apiData[3].Data | Group-Object -property machineId #or computerDNS name contains.
+#$apiData[4].Data | Group-Object -property computerDnsName
+
+
+#Change property name from machineId to deviceId.
+#match computerDnsName to 
+
+
+#-----------------------
+#Start correlating the objects.
+
+# ToDo:
+# - Make all values a custom powershell object: [PSCustomObject]@
+# - Add option to call GOV API: https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/gov?view=o365-worldwide#api
+#Enders Game
+# shadow byte
+# data gate
+# CMDLET - flood portal with fake eicar test file alerts
+
+
+
 
 # Alert resource type - /api/alerts/[alerts]
 # Export assessment methods and properties per device -
